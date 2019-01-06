@@ -1,6 +1,4 @@
-import re
 import csv
-from question import Question
 
 trainDataPath = r"./data/train.csv"
 testDataPath = r"./data/test.csv"
@@ -22,7 +20,7 @@ def readCsvData(file, maxRows = None):
 
                 data.append(row)
                 i += 1
-                if i is maxRows:
+                if i == maxRows:
                     break
         else:
             data = list(reader)
@@ -34,7 +32,7 @@ def parseTrainData(maxRows = None):
 
     questions = []
     for row in data:
-        questions.append(Question(row[0], row[1], row[2]))
+        questions.append((row[0], row[1], row[2]))
 
     return questions
 
@@ -43,9 +41,6 @@ def parseTestData(maxRows = None):
 
     questions = []
     for row in data:
-        questions.append(Question(row[0], row[1]))
-
-    for q in questions:
-        q.print()
+        questions.append((row[0], row[1]))
 
     return questions
