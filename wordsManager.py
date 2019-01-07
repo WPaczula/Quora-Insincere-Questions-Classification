@@ -44,3 +44,16 @@ def create_ngrams_dictionary(questions, n=1):
         for w in ngrams(s, n):
             sincere_dictionary[" ".join(w)] += 1
     return insincere_dictionary, sincere_dictionary
+
+
+def create_ngram_set(questions, n=1):
+    processed_questions = apply_removals(questions)
+    questions_ngrams = []
+    i = 0
+    for q in questions:
+        question_ngrams = []
+        for w in ngrams(processed_questions[i], n):
+            question_ngrams.append(" ".join(w))
+        questions_ngrams.append((q[0], question_ngrams))
+        i += 1
+    return questions_ngrams
