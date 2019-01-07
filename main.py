@@ -1,8 +1,8 @@
-from csvParser import parseTrainData, parseTestData
-from wordsManager import createNgramsDictionary
+from csvParser import parse_train_data, parse_test_data
+from wordsManager import create_ngrams_dictionary
 
-trainData = parseTrainData(1306120)
-testData = parseTestData(56370)
+train_data = parse_train_data(1306120)
+test_data = parse_test_data(56370)
 
 # print('********************\nTRAIN:\n********************')
 # for q in trainData:
@@ -12,9 +12,9 @@ testData = parseTestData(56370)
 # for q in testData:
 #     q.print()
 
-insincereDictionary, sincereDictionary = createNgramsDictionary(trainData, 2)
+insincere_dictionary, sincere_dictionary = create_ngrams_dictionary(train_data, 2)
 i = 0
-for w in sorted(insincereDictionary.items(), key=lambda x: x[1], reverse=True):
+for w in sorted(insincere_dictionary.items(), key=lambda x: x[1], reverse=True):
     if i > 300:
         break
     i += 1
