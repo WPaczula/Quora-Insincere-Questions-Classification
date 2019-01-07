@@ -3,11 +3,12 @@ import csv
 trainDataPath = r"./data/train.csv"
 testDataPath = r"./data/test.csv"
 
-def readCsvData(file, maxRows = None):
-    with open(file, 'r', encoding = 'utf-8') as f:
-        reader = csv.reader(f, delimiter = ',')
+
+def read_csv_data(file, max_rows=None):
+    with open(file, 'r', encoding='utf-8') as f:
+        reader = csv.reader(f, delimiter=',')
         
-        if maxRows is not None:
+        if max_rows is not None:
             header = True
             i = 0
             data = []
@@ -20,15 +21,16 @@ def readCsvData(file, maxRows = None):
 
                 data.append(row)
                 i += 1
-                if i == maxRows:
+                if i == max_rows:
                     break
         else:
             data = list(reader)
 
     return data
 
-def parseTrainData(maxRows = None):
-    data = readCsvData(trainDataPath, maxRows)
+
+def parse_train_data(max_rows=None):
+    data = read_csv_data(trainDataPath, max_rows)
 
     questions = []
     for row in data:
@@ -36,8 +38,9 @@ def parseTrainData(maxRows = None):
 
     return questions
 
-def parseTestData(maxRows = None):
-    data = readCsvData(testDataPath, maxRows)
+
+def parse_test_data(max_rows=None):
+    data = read_csv_data(testDataPath, max_rows)
 
     questions = []
     for row in data:
