@@ -1,7 +1,7 @@
 import csv
 
-trainDataPath = r"./data/train.csv"
-testDataPath = r"./data/test.csv"
+trainDataPath = r"/Users/mateuszligus/projects/studia/Quora-Insincere-Questions-Classification/data/train.csv"
+testDataPath = r"/Users/mateuszligus/projects/studia/Quora-Insincere-Questions-Classification/data/test.csv"
 
 
 def read_csv_data(file, max_rows=None):

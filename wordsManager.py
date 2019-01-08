@@ -2,6 +2,7 @@ import string
 from collections import defaultdict
 from nltk import ngrams
 from nltk.corpus import stopwords
+from nltk.stem.porter import PorterStemmer
 
 
 def remove_punctuation(text):
@@ -11,9 +12,9 @@ def remove_punctuation(text):
 
 def remove_stopwords(text):
     sw = stopwords.words('english')
-    text = [word.lower() for word in text.split() if word.lower() not in sw]
-    # return " ".join(text) # if you want whole sentences
-    return text
+    text = [PorterStemmer().stem(word.lower()) for word in text.split() if word.lower() not in sw]
+    return " ".join(text) # if you want whole sentences
+    # return text
 
 
 def apply_removals(questions):
@@ -44,3 +45,16 @@ def create_ngrams_dictionary(questions, n=1):
         for w in ngrams(s, n):
             sincere_dictionary[" ".join(w)] += 1
     return insincere_dictionary, sincere_dictionary
+
+
+def create_ngram_set(questions, n=1):
+    processed_questions = apply_removals(questions)
+    questions_ngrams = []
+    i = 0
+    for q in questions:
+        question_ngrams = []
+        for w in ngrams(processed_questions[i], n):
+            question_ngrams.append(" ".join(w))
+        questions_ngrams.append((q[0], question_ngrams))
+        i += 1
+    return questions_ngrams
