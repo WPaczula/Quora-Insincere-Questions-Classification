@@ -2,7 +2,7 @@ import string
 from collections import defaultdict
 from nltk import ngrams
 from nltk.corpus import stopwords
-
+from nltk.stem.porter import PorterStemmer
 
 def remove_punctuation(text):
     translator = str.maketrans('', '', string.punctuation)
@@ -11,7 +11,7 @@ def remove_punctuation(text):
 
 def remove_stopwords(text):
     sw = stopwords.words('english')
-    text = [word.lower() for word in text.split() if word.lower() not in sw]
+    text = [PorterStemmer().stem(word.lower()) for word in text.split() if word.lower() not in sw]
     # return " ".join(text) # if you want whole sentences
     return text
 
