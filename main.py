@@ -1,19 +1,17 @@
-import numpy as np  # linear algebra
+import csv
+import string
+
+import nltk
 import pandas as pd  # data processing, CSV file I/O (e.g. pd.read_csv)
+from nltk.corpus import stopwords
+from nltk.stem.porter import PorterStemmer
+from sklearn import metrics
+from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
+from sklearn.model_selection import train_test_split
+from sklearn.naive_bayes import MultinomialNB
 
 # Input data files are available in the "../input/" directory.
 # For example, running this (by clicking run or pressing Shift+Enter) will list the files in the input directory
-
-import string
-import csv
-import nltk
-from collections import defaultdict
-from nltk import ngrams
-from nltk.corpus import stopwords
-from nltk.stem.porter import PorterStemmer
-from sklearn.model_selection import train_test_split
-from sklearn.naive_bayes import MultinomialNB
-from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer, TfidfTransformer
 
 # Any results you write to the current directory are saved as output.
 
@@ -89,7 +87,7 @@ def apply_removals(questions):
     return cleared_texts
 
 
-train_data = parse_train_data(13061)#22)
+train_data = parse_train_data(1306122)
 test_data = parse_test_data(56370)
 
 submission_path = r"submission.csv"
@@ -107,30 +105,33 @@ train_data = []
 
 # features = tfidf.fit_transform(train_df.sentence).toarray()
 # labels = train_df.target.items()
-# print(features.shape) # produces touple (N, M) - each of N sentences is represented by M features (representing the tf-idf score for different bigrams and trigrams if ngram_range(2,3)
 
-# X_train, X_test, y_train, y_test = train_test_split(train_df["sentence"], train_df["target"], random_state=0)
-
+X_train, X_test, y_train, y_test = train_test_split(train_df["sentence"], train_df["target"], random_state=0)
 count_vect = CountVectorizer(ngram_range=(1, 1))
 
-X_train_counts = count_vect.fit_transform(train_df["sentence"])
+X_train_counts = count_vect.fit_transform(X_train)
+X_test_counts = count_vect.transform(X_test)
 
 tfdif_transformer = TfidfTransformer()
 
 X_train_tfdif = tfdif_transformer.fit_transform(X_train_counts)
+X_test_tfdif = tfdif_transformer.transform(X_test_counts)
 
-classificator = MultinomialNB().fit(X_train_tfdif, train_df["target"])
+classificator = MultinomialNB().fit(X_train_tfdif, y_train)
 
-test_df["qid"] = [x[0] for x in test_data]
-test_df["sentence"] = [x[1] for x in test_data]
-test_df["shortened"] = apply_removals(test_data)
-test_data = []
+predictions = classificator.predict(X_test_tfdif)
+print("Accuracy: ", metrics.accuracy_score(predictions, y_test))
 
-i = 0
-for string in test_df["shortened"]:
-    predicted = classificator.predict(count_vect.transform([string]))
-    test_df.set_value(i, "prediction", predicted[0])
-    i += 1
-
-headers = ["qid", "prediction"]
-test_df.to_csv(submission_path, columns=headers, index=False)
+# test_df["qid"] = [x[0] for x in test_data]
+# test_df["sentence"] = [x[1] for x in test_data]
+# test_df["shortened"] = apply_removals(test_data)
+# test_data = []
+#
+# i = 0
+# for string in test_df["shortened"]:
+#     predicted = classificator.predict(count_vect.transform([string]))
+#     test_df.set_value(i, "prediction", predicted[0])
+#     i += 1
+#
+# headers = ["qid", "prediction"]
+# test_df.to_csv(submission_path, columns=headers, index=False)
