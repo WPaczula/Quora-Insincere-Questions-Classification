@@ -17,7 +17,7 @@ nltk.download('stopwords')
 ```
 ### Data
 
-Before running the scripts copy `test.csv` and `train.csv` data files from [kaggle](https://www.kaggle.com/c/quora-insincere-questions-classification/data) to your `./data` folder.
+Before running the scripts copy `test.csv` and `train.csv` data files from [kaggle](https://www.kaggle.com/c/quora-insincere-questions-classification/data) to your `./input` folder.
 
 
   
