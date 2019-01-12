@@ -7,6 +7,7 @@ from nltk.corpus import stopwords
 from nltk.stem.porter import PorterStemmer
 from sklearn import metrics
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
+from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import MultinomialNB
 
@@ -75,7 +76,6 @@ def remove_stopwords(text):
     sw = stopwords.words('english')
     text = [PorterStemmer().stem(word.lower()) for word in text.split() if word.lower() not in sw]
     return " ".join(text)  # if you want whole sentences
-    # return text
 
 
 def apply_removals(questions):
@@ -101,12 +101,8 @@ train_df["target"] = [x[2] for x in train_data]
 train_df.head()
 train_data = []
 
-# tfidf = TfidfVectorizer(ngram_range=(1, 3), stop_words="english", min_df=0.0005)
-
-# features = tfidf.fit_transform(train_df.sentence).toarray()
-# labels = train_df.target.items()
-
-X_train, X_test, y_train, y_test = train_test_split(train_df["sentence"], train_df["target"], random_state=0)
+X_train, X_test, y_train, y_test = train_test_split(train_df["sentence"], train_df["target"], random_state=0,
+                                                    stratify=train_df["target"])
 count_vect = CountVectorizer(ngram_range=(1, 1))
 
 X_train_counts = count_vect.fit_transform(X_train)
@@ -120,18 +116,31 @@ X_test_tfdif = tfdif_transformer.transform(X_test_counts)
 classificator = MultinomialNB().fit(X_train_tfdif, y_train)
 
 predictions = classificator.predict(X_test_tfdif)
-print("Accuracy: ", metrics.accuracy_score(predictions, y_test))
+confusionMatrix = confusion_matrix(y_test, predictions)
 
-# test_df["qid"] = [x[0] for x in test_data]
-# test_df["sentence"] = [x[1] for x in test_data]
-# test_df["shortened"] = apply_removals(test_data)
-# test_data = []
-#
-# i = 0
-# for string in test_df["shortened"]:
-#     predicted = classificator.predict(count_vect.transform([string]))
-#     test_df.set_value(i, "prediction", predicted[0])
-#     i += 1
-#
-# headers = ["qid", "prediction"]
-# test_df.to_csv(submission_path, columns=headers, index=False)
+total = sum(sum(confusionMatrix))
+
+accuracy1 = (confusionMatrix[0, 0] + confusionMatrix[1, 1]) / total
+print('Accuracy : ', accuracy1)
+print(confusionMatrix)
+sensitivity1 = confusionMatrix[0, 0] / (confusionMatrix[0, 0] + confusionMatrix[0, 1])
+print('Sensitivity : ', sensitivity1)
+
+specificity1 = confusionMatrix[1, 1] / (confusionMatrix[1, 0] + confusionMatrix[1, 1])
+print('Specificity : ', specificity1)
+
+print("Accuracy: ", metrics.accuracy_score(y_test, predictions))
+
+test_df["qid"] = [x[0] for x in test_data]
+test_df["sentence"] = [x[1] for x in test_data]
+test_df["shortened"] = apply_removals(test_data)
+test_data = []
+
+i = 0
+for string in test_df["shortened"]:
+    predicted = classificator.predict(count_vect.transform([string]))
+    test_df.set_value(i, "prediction", predicted[0])
+    i += 1
+
+headers = ["qid", "prediction"]
+test_df.to_csv(submission_path, columns=headers, index=False)
