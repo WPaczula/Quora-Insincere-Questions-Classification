@@ -5,20 +5,22 @@ import nltk
 import pandas as pd  # data processing, CSV file I/O (e.g. pd.read_csv)
 from nltk.corpus import stopwords
 from nltk.stem.porter import PorterStemmer
-from sklearn import metrics
+from sklearn import metrics, tree, neighbors
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
+from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
-from sklearn.naive_bayes import MultinomialNB
+from sklearn.naive_bayes import MultinomialNB, GaussianNB
 
 # Input data files are available in the "../input/" directory.
 # For example, running this (by clicking run or pressing Shift+Enter) will list the files in the input directory
 
 # Any results you write to the current directory are saved as output.
 
-nltk.download('stopwords')
+#nltk.download('stopwords')
 
-trainDataPath = r"input/train.csv"
-testDataPath = r"input/test.csv"
+trainDataPath = r"data/train.csv"
+testDataPath = r"data/test.csv"
 
 
 def read_csv_data(file, max_rows=None):
@@ -87,7 +89,18 @@ def apply_removals(questions):
     return cleared_texts
 
 
-train_data = parse_train_data(1306122)
+def run_model(model, name):
+    classificator = model.fit(X_train_tfidf, y_train)
+    predictions = classificator.predict(X_test_tfidf)
+    print(name)
+    print("Accuracy: ", metrics.accuracy_score(y_test.values, predictions))
+    print("Precision: ", metrics.precision_score(y_test.values, predictions, pos_label='1'))
+    print("Recall/Sensitivity: ", metrics.recall_score(y_test.values, predictions, pos_label='1'))
+    print("F1 Score: ", metrics.f1_score(y_test.values, predictions, pos_label='1'))
+    print("")
+
+
+train_data = parse_train_data(130612)
 test_data = parse_test_data(56370)
 
 submission_path = r"submission.csv"
@@ -101,37 +114,28 @@ train_df["target"] = [x[2] for x in train_data]
 train_df.head()
 train_data = []
 
-# tfidf = TfidfVectorizer(ngram_range=(1, 3), stop_words="english", min_df=0.0005)
-
-# features = tfidf.fit_transform(train_df.sentence).toarray()
-# labels = train_df.target.items()
-
 X_train, X_test, y_train, y_test = train_test_split(train_df["sentence"], train_df["target"], random_state=0)
 count_vect = CountVectorizer(ngram_range=(1, 1))
 
 X_train_counts = count_vect.fit_transform(X_train)
 X_test_counts = count_vect.transform(X_test)
 
-tfdif_transformer = TfidfTransformer()
+tfidf_transformer = TfidfTransformer()
 
-X_train_tfdif = tfdif_transformer.fit_transform(X_train_counts)
-X_test_tfdif = tfdif_transformer.transform(X_test_counts)
+X_train_tfidf = tfidf_transformer.fit_transform(X_train_counts)
+X_test_tfidf = X_test_counts # tfidf_transformer.transform(X_test_counts)
 
-classificator = MultinomialNB().fit(X_train_tfdif, y_train)
+model = tree.DecisionTreeClassifier(criterion='entropy', max_depth=5)
+run_model(model, "DecisionTree:")
 
-predictions = classificator.predict(X_test_tfdif)
-print("Accuracy: ", metrics.accuracy_score(predictions, y_test))
+model = RandomForestClassifier(n_estimators=10)
+run_model(model, "RandomForest:")
 
-# test_df["qid"] = [x[0] for x in test_data]
-# test_df["sentence"] = [x[1] for x in test_data]
-# test_df["shortened"] = apply_removals(test_data)
-# test_data = []
-#
-# i = 0
-# for string in test_df["shortened"]:
-#     predicted = classificator.predict(count_vect.transform([string]))
-#     test_df.set_value(i, "prediction", predicted[0])
-#     i += 1
-#
-# headers = ["qid", "prediction"]
-# test_df.to_csv(submission_path, columns=headers, index=False)
+model = neighbors.KNeighborsClassifier()
+run_model(model, "KNN:")
+
+model = MultinomialNB()
+run_model(model, "MultinomialNB:")
+
+model = LogisticRegression()
+run_model(model, "Logistic Regression")
